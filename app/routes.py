@@ -7,12 +7,43 @@ from datetime import timedelta
 import time
 from pathlib import Path
 import shutil
+from functools import wraps
 
 from . import auth, database, models, image_converter, video_converter
 from .auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from .models import FileType
 
 router = APIRouter()
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in kwargs['session']:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Login required")
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in kwargs['session']:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Admin access required")
+        user = kwargs['db'].query(models.User).get(kwargs['session']['user_id'])
+        if not user or not user.is_admin:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+        return f(*args, **kwargs)
+    return decorated_function
+
+def super_admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in kwargs['session']:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Super admin access required")
+        user = kwargs['db'].query(models.User).get(kwargs['session']['user_id'])
+        if not user or not user.is_superuser:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Super admin access required")
+        return f(*args, **kwargs)
+    return decorated_function
 
 @router.post("/token")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):

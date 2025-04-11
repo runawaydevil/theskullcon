@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Conversor de Arquivos{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-header bg-gradient-primary text-white rounded-top-4">
+                    <h2 class="mb-0 text-center">TheSkull.org - Conversor de Arquivos</h2>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Área de Upload -->
+                    <div class="upload-area mb-4 p-4 border rounded-3 bg-light">
+                        <form id="uploadForm" class="dropzone" action="{{ url_for('converter.upload') }}" method="post" enctype="multipart/form-data">
+                            <div class="dz-message needsclick">
+                                <i class="fas fa-cloud-upload-alt fa-3x mb-3"></i>
+                                <h4>Arraste arquivos aqui ou clique para selecionar</h4>
+                                <p class="text-muted">Suporta imagens e vídeos</p>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Opções de Conversão -->
+                    <div class="conversion-options">
+                        <h4 class="mb-3">Opções de Conversão</h4>
+                        <div class="row g-3">
+                            <!-- Formato de Saída -->
+                            <div class="col-12 col-md-6">
+                                <label for="outputFormat" class="form-label">Formato de Saída</label>
+                                <select class="form-select" id="outputFormat" name="output_format">
+                                    <option value="webp">WebP</option>
+                                    <option value="avif">AVIF</option>
+                                    <option value="jxl">JPEG XL</option>
+                                    <option value="jpg">JPEG</option>
+                                    <option value="png">PNG</option>
+                                    <option value="mp4">MP4</option>
+                                    <option value="webm">WebM</option>
+                                    <option value="avi">AVI</option>
+                                    <option value="mkv">MKV</option>
+                                </select>
+                            </div>
+
+                            <!-- Qualidade -->
+                            <div class="col-12 col-md-6">
+                                <label for="quality" class="form-label">Qualidade</label>
+                                <input type="range" class="form-range" id="quality" name="quality" min="1" max="100" value="80">
+                                <div class="d-flex justify-content-between">
+                                    <small>Baixa</small>
+                                    <small>Alta</small>
+                                </div>
+                            </div>
+
+                            <!-- Resolução -->
+                            <div class="col-12 col-md-6">
+                                <label for="width" class="form-label">Largura (px)</label>
+                                <input type="number" class="form-control" id="width" name="width" placeholder="Auto">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="height" class="form-label">Altura (px)</label>
+                                <input type="number" class="form-control" id="height" name="height" placeholder="Auto">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botão de Conversão -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg px-5 rounded-pill" id="convertBtn">
+                            <i class="fas fa-sync-alt me-2"></i>Converter
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Área de Resultados -->
+    <div class="row justify-content-center mt-4">
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-header bg-gradient-success text-white rounded-top-4">
+                    <h3 class="mb-0">Resultados</h3>
+                </div>
+                <div class="card-body p-4">
+                    <div id="results" class="row g-3">
+                        <!-- Os resultados serão inseridos aqui via JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Progresso -->
+<div class="modal fade" id="progressModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Convertendo...</h5>
+            </div>
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+                <p class="mb-0">Por favor, aguarde enquanto seu arquivo está sendo convertido.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(45deg, #2c3e50, #3498db);
+    }
+    
+    .bg-gradient-success {
+        background: linear-gradient(45deg, #27ae60, #2ecc71);
+    }
+
+    .dropzone {
+        border: 2px dashed #3498db;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .dropzone:hover {
+        background-color: #f8f9fa;
+    }
+
+    .card {
+        transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+    }
+
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+        padding: 10px 15px;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, #2c3e50, #3498db);
+        border: none;
+        padding: 12px 30px;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(45deg, #3498db, #2c3e50);
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .card {
+            margin: 0 10px;
+        }
+        
+        .btn-primary {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Inicialização do Dropzone
+    Dropzone.autoDiscover = false;
+    const myDropzone = new Dropzone("#uploadForm", {
+        paramName: "file",
+        maxFilesize: 100, // MB
+        acceptedFiles: ".jpg,.jpeg,.png,.gif,.webp,.avif,.mp4,.webm,.avi,.mkv",
+        addRemoveLinks: true,
+        dictDefaultMessage: "Arraste arquivos aqui ou clique para selecionar",
+        dictRemoveFile: "Remover arquivo",
+        init: function() {
+            this.on("success", function(file, response) {
+                // Lógica para lidar com o upload bem-sucedido
+            });
+        }
+    });
+
+    // Manipulação do botão de conversão
+    document.getElementById('convertBtn').addEventListener('click', function() {
+        const progressModal = new bootstrap.Modal(document.getElementById('progressModal'));
+        progressModal.show();
+        
+        // Lógica de conversão aqui
+        // Após a conversão:
+        // progressModal.hide();
+    });
+</script>
+{% endblock %} 
