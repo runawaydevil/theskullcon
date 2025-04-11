@@ -1,21 +1,46 @@
-# TheSkull.org - Conversor de Imagens
+# TheSkull.org - Conversor de Arquivos
 
-Um sistema de conversão de imagens com suporte a múltiplos formatos modernos, incluindo WebP, AVIF e JPEG XL.
+API para conversão de imagens e vídeos com interface web moderna e responsiva.
 
-## Características
+## Funcionalidades
 
-- Conversão para múltiplos formatos (WebP, AVIF, JPEG XL, JPEG, PNG)
-- Autenticação segura com JWT
-- Interface RESTful API
-- Armazenamento de histórico de conversões
-- Suporte a compressão avançada
-- Design responsivo
+- **Conversão de Imagens**:
+  - Suporte para WebP, AVIF, JPEG XL, JPEG, PNG
+  - Controle de qualidade
+  - Redimensionamento automático
+
+- **Conversão de Vídeos** (apenas super admin):
+  - Suporte para MP4, WebM, AVI, MKV
+  - Compressão otimizada
+  - Controle de resolução
+
+- **Interface Web**:
+  - Design moderno e responsivo
+  - Upload via drag-and-drop
+  - Preview de arquivos
+  - Histórico de conversões
+
+## Tecnologias Utilizadas
+
+- **Backend**:
+  - FastAPI
+  - SQLAlchemy
+  - Alembic
+  - FFmpeg
+  - Pillow
+
+- **Frontend**:
+  - Bootstrap 5
+  - Font Awesome
+  - Dropzone.js
+  - Jinja2 Templates
 
 ## Requisitos
 
 - Python 3.8+
 - PostgreSQL
-- Bibliotecas Python (listadas em requirements.txt)
+- FFmpeg
+- Dependências Python (ver `requirements.txt`)
 
 ## Instalação
 
@@ -37,54 +62,85 @@ venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 ```
 
-4. Configure o banco de dados:
+4. Configure as variáveis de ambiente:
 ```bash
-# Crie o banco de dados PostgreSQL
-createdb theskullcon
-
-# Copie o arquivo .env.example para .env e configure as variáveis
 cp .env.example .env
+# Edite o arquivo .env com suas configurações
 ```
 
-5. Execute as migrações do banco de dados:
+5. Inicialize o banco de dados:
 ```bash
 alembic upgrade head
+python -m app.init_db
 ```
 
-## Uso
+## Executando o Projeto
 
 1. Inicie o servidor:
 ```bash
 python -m app.main
 ```
 
-2. Acesse a API em `http://localhost:8000`
+2. Acesse a aplicação:
+```
+http://localhost:8012
+```
 
-3. Use o endpoint `/docs` para acessar a documentação Swagger da API
+## Estrutura do Projeto
 
-## Endpoints Principais
+```
+theskullcon/
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── auth.py
+│   ├── database.py
+│   ├── models.py
+│   ├── routes.py
+│   ├── image_converter.py
+│   ├── video_converter.py
+│   ├── init_db.py
+│   └── templates/
+│       ├── base.html
+│       ├── auth/
+│       │   ├── login.html
+│       │   └── register.html
+│       └── converter/
+│           └── index.html
+├── alembic/
+│   └── versions/
+├── uploads/
+├── converted/
+├── requirements.txt
+├── .env.example
+└── README.md
+```
 
-- `POST /convert` - Converte uma imagem
-- `POST /token` - Obtém token de autenticação
-- `GET /users/me` - Informações do usuário atual
-- `GET /conversions` - Histórico de conversões
+## Configuração
 
-## Segurança
+### Variáveis de Ambiente
 
-- Todas as senhas são hashed usando bcrypt
-- Autenticação via JWT
-- Proteção contra CSRF
-- Validação de tipos de arquivo
-- Limite de tamanho de arquivo
+Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+
+```env
+DATABASE_URL=postgresql://usuario:senha@localhost/theskullcon
+SECRET_KEY=sua-chave-secreta
+```
+
+### Permissões de Usuário
+
+- **Usuário Normal**: Pode converter imagens
+- **Admin**: Pode converter imagens e vídeos
+- **Super Admin**: Acesso total ao sistema
 
 ## Contribuição
 
-1. Fork o projeto
-2. Crie sua feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
+3. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
+4. Push para a branch (`git push origin feature/nova-feature`)
 5. Abra um Pull Request
 
 ## Licença
 
-Este projeto está licenciado sob a Licença MIT - veja o arquivo LICENSE para detalhes. 
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes. 
