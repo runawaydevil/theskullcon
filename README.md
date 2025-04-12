@@ -1,7 +1,7 @@
 # TheSkullCon - File Converter
 
 <div align="center">
-  <img src="https://i.ibb.co/3YR3V6zx/logo-2.png" alt="TheSkullCon Logo" width="200">
+  <img src="app/static/images/logo.png" alt="TheSkullCon Logo" width="200">
 </div>
 
 [![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
