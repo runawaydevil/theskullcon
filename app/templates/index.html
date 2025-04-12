@@ -1,13 +1,89 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TheSkullCon - Conversor de Arquivos</title>
+    <title>TheSkullCon - File Converter</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', path='images/logo.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        body {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar {
+            background-color: #ffffff;
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #000000 !important;
+        }
+        .navbar-brand img {
+            height: 45px;
+            width: auto;
+        }
+        .container {
+            flex: 1;
+            padding: 2rem 0;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background-color: #343a40;
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+        }
+        .btn-primary {
+            background-color: #343a40;
+            border-color: #343a40;
+        }
+        .btn-primary:hover {
+            background-color: #23272b;
+            border-color: #23272b;
+        }
+        .preview-container {
+            max-width: 100%;
+            margin: 1rem 0;
+            text-align: center;
+        }
+        .preview-container img, .preview-container video {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+        }
+        .progress {
+            height: 25px;
+            margin: 1rem 0;
+        }
+        .status-message {
+            margin: 1rem 0;
+            font-weight: bold;
+        }
+        .download-btn {
+            display: none;
+            margin-top: 1rem;
+        }
+        footer {
+            background-color: #343a40;
+            color: white;
+            padding: 1rem 0;
+            margin-top: auto;
+        }
+        footer a {
+            color: white;
+            text-decoration: none;
+        }
+        footer a:hover {
+            color: #adb5bd;
+        }
         .dropzone {
             border: 2px dashed #0087F7;
             border-radius: 5px;
@@ -20,30 +96,13 @@
             margin: 2em 0;
             text-align: center;
         }
-        .preview-container {
-            margin-top: 20px;
-        }
         .preview-image {
             max-width: 100%;
             max-height: 200px;
             margin-bottom: 10px;
         }
-        .progress {
-            height: 25px;
-            margin-top: 20px;
-            display: none;
-        }
         .progress-bar {
             transition: width 0.3s ease;
-        }
-        .status-message {
-            margin-top: 10px;
-            font-weight: bold;
-            display: none;
-        }
-        .download-btn {
-            display: none;
-            margin-top: 20px;
         }
         .format-group {
             display: none;
@@ -51,12 +110,21 @@
     </style>
 </head>
 <body>
-    <div class="container py-5">
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', path='images/logo.png') }}" alt="TheSkullCon Logo">
+                TheSkullCon
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <div class="card shadow">
-                    <div class="card-header bg-dark text-white">
-                        <h3 class="mb-0">TheSkullCon - Conversor de Arquivos</h3>
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">File Converter</h4>
                     </div>
                     <div class="card-body">
                         <div id="alert-container">
@@ -66,7 +134,7 @@
                                 {% if output_file %}
                                 <br>
                                 <a href="/static/uploads/{{ output_file }}" class="btn btn-sm btn-success mt-2" download>
-                                    <i class="fas fa-download"></i> Baixar Arquivo
+                                    <i class="fas fa-download"></i> Download File
                                 </a>
                                 {% endif %}
                             </div>
@@ -81,30 +149,41 @@
 
                         <form id="conversion-form" action="/convert" method="post" enctype="multipart/form-data">
                             <div class="mb-3">
-                                <label for="file" class="form-label">Arquivo para conversão:</label>
+                                <label for="file" class="form-label">File to convert:</label>
                                 <input type="file" class="form-control" id="file" name="file" required>
+                                <small class="text-muted">Maximum file size: 300MB</small>
                             </div>
 
                             <div class="mb-3">
-                                <label for="output_format" class="form-label">Formato de Saída</label>
+                                <label for="output_format" class="form-label">Output Format</label>
                                 <select name="output_format" id="output_format" class="form-select" required>
-                                    <option value="">Selecione o formato...</option>
-                                    <optgroup label="Imagens" class="format-group" id="image-formats">
+                                    <option value="">Select format...</option>
+                                    <optgroup label="Images" class="format-group" id="image-formats">
                                         <option value="jpg">JPG</option>
                                         <option value="png">PNG</option>
                                         <option value="bmp">BMP</option>
                                         <option value="tiff">TIFF</option>
                                         <option value="webp">WebP</option>
                                     </optgroup>
-                                    <optgroup label="Vídeos" class="format-group" id="video-formats">
+                                    <optgroup label="Videos" class="format-group" id="video-formats">
                                         <option value="mp4">MP4</option>
                                         <option value="avi">AVI</option>
                                         <option value="mov">MOV</option>
                                         <option value="mkv">MKV</option>
                                         <option value="gif">GIF</option>
                                     </optgroup>
+                                    <optgroup label="Audio" class="format-group" id="audio-formats">
+                                        <option value="mp3">MP3</option>
+                                        <option value="wav">WAV</option>
+                                        <option value="ogg">OGG</option>
+                                        <option value="flac">FLAC</option>
+                                        <option value="aac">AAC</option>
+                                        <option value="m4a">M4A</option>
+                                    </optgroup>
                                 </select>
                             </div>
+
+                            <div class="preview-container" id="previewContainer"></div>
 
                             <div class="progress">
                                 <div class="progress-bar progress-bar-striped progress-bar-animated" 
@@ -119,11 +198,11 @@
                             <div class="status-message" id="status-message"></div>
 
                             <button type="submit" class="btn btn-primary" id="convert-btn">
-                                <i class="fas fa-exchange-alt"></i> Converter
+                                <i class="fas fa-exchange-alt"></i> Convert
                             </button>
 
                             <a href="#" class="btn btn-success download-btn" id="download-btn" download>
-                                <i class="fas fa-download"></i> Baixar Arquivo Convertido
+                                <i class="fas fa-download"></i> Download Converted File
                             </a>
                         </form>
                     </div>
@@ -132,26 +211,35 @@
         </div>
     </div>
 
+    <footer class="text-center">
+        <div class="container">
+            <p class="mb-0">Developed by <a href="https://github.com/RunawayDevil" target="_blank">RunawayDevil</a> © 2025</p>
+        </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Formatos permitidos
         const imageFormats = ['jpg', 'jpeg', 'png', 'bmp', 'tiff', 'webp'];
         const videoFormats = ['mp4', 'avi', 'mov', 'mkv', 'gif'];
+        const audioFormats = ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a'];
 
         // Elementos do DOM
         const fileInput = document.getElementById('file');
         const outputFormat = document.getElementById('output_format');
         const imageFormatsGroup = document.getElementById('image-formats');
         const videoFormatsGroup = document.getElementById('video-formats');
+        const audioFormatsGroup = document.getElementById('audio-formats');
 
         // Função para atualizar os formatos disponíveis
         function updateAvailableFormats(file) {
             // Esconder todos os grupos de formatos
             imageFormatsGroup.style.display = 'none';
             videoFormatsGroup.style.display = 'none';
+            audioFormatsGroup.style.display = 'none';
 
             // Limpar o select
-            outputFormat.innerHTML = '<option value="">Selecione o formato...</option>';
+            outputFormat.innerHTML = '<option value="">Select format...</option>';
 
             // Obter a extensão do arquivo
             const fileName = file.name.toLowerCase();
@@ -164,6 +252,9 @@
             } else if (videoFormats.includes(fileExt)) {
                 videoFormatsGroup.style.display = 'block';
                 outputFormat.appendChild(videoFormatsGroup);
+            } else if (audioFormats.includes(fileExt)) {
+                audioFormatsGroup.style.display = 'block';
+                outputFormat.appendChild(audioFormatsGroup);
             }
         }
 
@@ -171,22 +262,28 @@
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
+                // Verificar tamanho do arquivo
+                if (file.size > 300 * 1024 * 1024) { // 300MB
+                    alert('File size exceeds the maximum limit of 300MB');
+                    this.value = '';
+                    return;
+                }
+
                 updateAvailableFormats(file);
                 
                 // Preview de imagem
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.createElement('div');
-                    preview.className = 'preview-container';
-                    if (file.type.startsWith('image/')) {
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.className = 'preview-image';
-                        preview.appendChild(img);
-                    }
-                    document.getElementById('conversion-form').insertBefore(preview, document.querySelector('.progress'));
+                const previewContainer = document.getElementById('previewContainer');
+                previewContainer.innerHTML = '';
+                if (file.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(file);
+                    previewContainer.appendChild(img);
+                } else if (file.type.startsWith('video/')) {
+                    const video = document.createElement('video');
+                    video.src = URL.createObjectURL(file);
+                    video.controls = true;
+                    previewContainer.appendChild(video);
                 }
-                reader.readAsDataURL(file);
             }
         });
 
@@ -214,7 +311,7 @@
                 progressValue += 5;
                 progressBar.style.width = progressValue + '%';
                 progressBar.setAttribute('aria-valuenow', progressValue);
-                statusMessage.textContent = `Convertendo... ${progressValue}%`;
+                statusMessage.textContent = `Converting... ${progressValue}%`;
 
                 if (progressValue >= 100) {
                     clearInterval(progressInterval);
@@ -240,7 +337,7 @@
                 clearInterval(progressInterval);
                 alertContainer.innerHTML = `
                     <div class="alert alert-danger">
-                        Erro durante a conversão: ${error.message}
+                        Error during conversion: ${error.message}
                     </div>
                 `;
                 convertBtn.disabled = false;

@@ -2,24 +2,22 @@ from fastapi import FastAPI, Request, Form, File, UploadFile
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
+import os
 from app.services.converter import VideoConverter
 from app.config import Config
-import os
-import shutil
-from pathlib import Path
 
 app = FastAPI()
 
-# Configuração dos templates
+# Configure templates
 templates = Jinja2Templates(directory="app/templates")
 
-# Configuração dos arquivos estáticos
+# Mount static files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-# Criar diretório de uploads se não existir
+# Ensure upload directory exists
 os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
 
-# Inicializar o conversor
+# Initialize converter
 converter = VideoConverter()
 
 @app.get("/", response_class=HTMLResponse)
@@ -33,64 +31,32 @@ async def convert_file(
     output_format: str = Form(...)
 ):
     try:
-        # Verificar se o arquivo foi enviado
-        if not file:
-            return templates.TemplateResponse(
-                "index.html",
-                {
-                    "request": request,
-                    "error": "Nenhum arquivo foi enviado"
-                }
-            )
-
-        # Verificar se o formato de saída é válido
-        if not output_format:
-            return templates.TemplateResponse(
-                "index.html",
-                {
-                    "request": request,
-                    "error": "Formato de saída não especificado"
-                }
-            )
-
-        # Salvar o arquivo temporariamente
+        # Save uploaded file
         file_path = os.path.join(Config.UPLOAD_FOLDER, file.filename)
         with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-        
-        # Gerar nome do arquivo de saída
-        output_filename = f"{Path(file.filename).stem}.{output_format}"
-        output_path = os.path.join(Config.UPLOAD_FOLDER, output_filename)
-        
-        # Converter o arquivo
-        success, message = converter.convert(file_path, output_path, output_format)
-        
-        # Limpar o arquivo temporário
-        os.remove(file_path)
-        
-        if success:
-            return templates.TemplateResponse(
-                "index.html",
-                {
-                    "request": request,
-                    "message": "Conversão concluída com sucesso!",
-                    "output_file": output_filename
-                }
-            )
-        else:
-            return templates.TemplateResponse(
-                "index.html",
-                {
-                    "request": request,
-                    "error": message
-                }
-            )
-    except Exception as e:
+            content = await file.read()
+            buffer.write(content)
+
+        # Convert file
+        output_file = converter.convert_file(file_path, output_format)
+
+        # Return success message with download link
         return templates.TemplateResponse(
             "index.html",
             {
                 "request": request,
-                "error": f"Erro durante a conversão: {str(e)}"
+                "message": "File converted successfully!",
+                "output_file": output_file
+            }
+        )
+
+    except Exception as e:
+        # Return error message
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "error": f"Error converting file: {str(e)}"
             }
         )
 

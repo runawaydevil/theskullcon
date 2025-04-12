@@ -4,19 +4,18 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
-    # Configurações de segurança
-    SECRET_KEY = os.getenv('SECRET_KEY', 'sua-chave-secreta-aqui')
+    # Security
+    SECRET_KEY = "your-secret-key-here"
     
-    # Configurações de upload
-    UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'app', 'static', 'uploads')
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
-    
-    # Configurações de conversão
+    # Upload settings
+    UPLOAD_FOLDER = "app/static/uploads"
+    MAX_CONTENT_LENGTH = 300 * 1024 * 1024  # 300MB in bytes
     ALLOWED_EXTENSIONS = {
-        'image': ['jpg', 'jpeg', 'png', 'bmp', 'tiff', 'webp'],
-        'video': ['mp4', 'avi', 'mov', 'mkv', 'gif']
+        'images': {'jpg', 'jpeg', 'png', 'bmp', 'tiff', 'webp'},
+        'videos': {'mp4', 'avi', 'mov', 'mkv', 'gif'},
+        'audio': {'mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a'}
     }
     
-    # Configurações do servidor
-    HOST = '127.0.0.1'
+    # Server settings
+    HOST = "0.0.0.0"
     PORT = 8012 

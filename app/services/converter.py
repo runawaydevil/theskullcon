@@ -3,59 +3,91 @@ import os
 import subprocess
 import shutil
 from app.config import Config
+import filetype
 
 class VideoConverter:
     def __init__(self):
         self.allowed_extensions = Config.ALLOWED_EXTENSIONS
 
     def is_allowed_file(self, filename):
-        ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
-        return ext in self.allowed_extensions['image'] + self.allowed_extensions['video']
+        """Check if file extension is allowed"""
+        ext = os.path.splitext(filename)[1].lower()
+        return ext in self.allowed_extensions['image'] or ext in self.allowed_extensions['video']
 
     def is_image(self, filename):
-        ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
+        """Check if file is an image"""
+        ext = os.path.splitext(filename)[1].lower()
         return ext in self.allowed_extensions['image']
 
     def is_video(self, filename):
-        ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
+        """Check if file is a video"""
+        ext = os.path.splitext(filename)[1].lower()
         return ext in self.allowed_extensions['video']
 
-    def convert_image(self, input_path, output_path, output_format):
-        try:
-            img = Image.open(input_path)
-            img.save(output_path, format=output_format.upper())
-            return True, "Conversão concluída com sucesso"
-        except Exception as e:
-            return False, f"Erro ao converter imagem: {str(e)}"
+    def detect_file_type(self, file_path: str) -> str:
+        """Detect file type using filetype"""
+        kind = filetype.guess(file_path)
+        if kind is None:
+            raise ValueError("Could not determine file type")
+            
+        mime_type = kind.mime
+        if mime_type.startswith('image/'):
+            return 'image'
+        elif mime_type.startswith('video/'):
+            return 'video'
+        elif mime_type.startswith('audio/'):
+            return 'audio'
+        else:
+            raise ValueError(f"Unsupported file type: {mime_type}")
 
-    def convert_video(self, input_path, output_path, output_format):
+    def convert_file(self, file_path: str, output_format: str) -> str:
+        """Convert file to specified format"""
+        file_type = self.detect_file_type(file_path)
+        
+        # Get output filename
+        output_filename = f"{os.path.splitext(os.path.basename(file_path))[0]}.{output_format}"
+        output_path = os.path.join(Config.UPLOAD_FOLDER, output_filename)
+        
+        if file_type == 'image':
+            return self.convert_image(file_path, output_path, output_format)
+        elif file_type == 'video':
+            return self.convert_video(file_path, output_path, output_format)
+        elif file_type == 'audio':
+            return self.convert_audio(file_path, output_path, output_format)
+        else:
+            raise ValueError(f"Unsupported file type: {file_type}")
+
+    def convert_image(self, input_path: str, output_path: str, output_format: str) -> str:
+        """Convert image to specified format"""
         try:
-            # Verificar se o FFmpeg está instalado
+            with Image.open(input_path) as img:
+                img.save(output_path, format=output_format.upper())
+            os.remove(input_path)  # Remove original file
+            return os.path.basename(output_path)
+        except Exception as e:
+            raise Exception(f"Error converting image: {str(e)}")
+
+    def convert_video(self, input_path: str, output_path: str, output_format: str) -> str:
+        """Convert video to specified format using FFmpeg"""
+        try:
+            # Check if FFmpeg is installed
             try:
                 subprocess.run(['ffmpeg', '-version'], check=True, capture_output=True)
-            except subprocess.CalledProcessError:
-                return False, "FFmpeg não está instalado ou não está no PATH do sistema"
+            except (subprocess.SubprocessError, FileNotFoundError):
+                raise Exception("FFmpeg is not installed or not in PATH")
 
-            # Criar diretório de saída se não existir
+            # Create output directory if it doesn't exist
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-            if output_format.lower() == 'gif':
-                # Converter para GIF usando FFmpeg
-                cmd = [
-                    'ffmpeg', '-i', input_path,
-                    '-vf', 'fps=10,scale=320:-1:flags=lanczos',
-                    '-f', 'gif', output_path
-                ]
-            else:
-                # Converter para outros formatos de vídeo
-                cmd = [
-                    'ffmpeg', '-i', input_path,
-                    '-c:v', 'libx264', '-preset', 'medium',
-                    '-c:a', 'aac', '-b:a', '128k',
-                    output_path
-                ]
+            # Build FFmpeg command
+            cmd = [
+                'ffmpeg', '-i', input_path,
+                '-c:v', 'libx264' if output_format in ['mp4', 'mkv'] else 'copy',
+                '-c:a', 'aac' if output_format in ['mp4', 'mkv'] else 'copy',
+                '-y', output_path
+            ]
 
-            # Executar o comando FFmpeg
+            # Run FFmpeg
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
@@ -63,23 +95,73 @@ class VideoConverter:
                 universal_newlines=True
             )
 
-            # Aguardar a conclusão do processo
+            # Wait for process to complete
             stdout, stderr = process.communicate()
 
             if process.returncode != 0:
-                return False, f"Erro ao converter vídeo: {stderr}"
+                raise Exception(f"FFmpeg error: {stderr}")
 
-            return True, "Conversão concluída com sucesso"
+            os.remove(input_path)  # Remove original file
+            return os.path.basename(output_path)
+
         except Exception as e:
-            return False, f"Erro ao converter vídeo: {str(e)}"
+            raise Exception(f"Error converting video: {str(e)}")
+
+    def convert_audio(self, input_path: str, output_path: str, output_format: str) -> str:
+        """Convert audio to specified format using FFmpeg"""
+        try:
+            # Check if FFmpeg is installed
+            try:
+                subprocess.run(['ffmpeg', '-version'], check=True, capture_output=True)
+            except (subprocess.SubprocessError, FileNotFoundError):
+                raise Exception("FFmpeg is not installed or not in PATH")
+
+            # Create output directory if it doesn't exist
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+            # Build FFmpeg command
+            cmd = [
+                'ffmpeg', '-i', input_path,
+                '-vn',  # No video
+                '-y', output_path
+            ]
+
+            # Run FFmpeg
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True
+            )
+
+            # Wait for process to complete
+            stdout, stderr = process.communicate()
+
+            if process.returncode != 0:
+                raise Exception(f"FFmpeg error: {stderr}")
+
+            os.remove(input_path)  # Remove original file
+            return os.path.basename(output_path)
+
+        except Exception as e:
+            raise Exception(f"Error converting audio: {str(e)}")
 
     def convert(self, input_path, output_path, output_format):
-        if not self.is_allowed_file(input_path):
-            return False, "Tipo de arquivo não suportado"
-
-        if self.is_image(input_path):
-            return self.convert_image(input_path, output_path, output_format)
-        elif self.is_video(input_path):
-            return self.convert_video(input_path, output_path, output_format)
-        else:
-            return False, "Tipo de arquivo não reconhecido" 
+        """Convert file to specified format"""
+        try:
+            # Get file type
+            kind = filetype.guess(input_path)
+            if kind is None:
+                raise ValueError("Could not determine file type")
+                
+            mime_type = kind.mime
+            
+            if mime_type.startswith('image/'):
+                return self.convert_image(input_path, output_path, output_format)
+            elif mime_type.startswith('video/'):
+                return self.convert_video(input_path, output_path, output_format)
+            else:
+                raise ValueError(f"Unsupported file type: {mime_type}")
+                
+        except Exception as e:
+            raise Exception(f"Error converting file: {str(e)}") 
