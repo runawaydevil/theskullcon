@@ -45,44 +45,36 @@ A modern and intuitive web application for converting images and videos.
 
 ## Requirements
 
-- Python 3.8 or higher
+- Debian 12 (Bookworm)
+- Python 3.11 or higher
 - FFmpeg
 - Python dependencies (listed in `requirements.txt`)
 
-## Detailed Installation Guide
+## Detailed Installation Guide for Debian 12
 
 ### 1. System Requirements
 
-#### Windows
-1. Install Python 3.8+:
-   - Download from [Python's official website](https://www.python.org/downloads/)
-   - During installation, check "Add Python to PATH"
-
-2. Install FFmpeg:
-   - Download from [FFmpeg official website](https://ffmpeg.org/download.html)
-   - Extract the ZIP file
-   - Add the FFmpeg `bin` folder to your system's PATH:
-     - Search for "Environment Variables" in Windows
-     - Under "System Variables", find and select "Path"
-     - Click "Edit" → "New"
-     - Add the path to FFmpeg's bin folder
-     - Click "OK" to save
-
-#### Linux (Ubuntu/Debian)
+1. Update your system:
 ```bash
-# Install Python
 sudo apt update
-sudo apt install python3 python3-pip python3-venv
-
-# Install FFmpeg
-sudo apt install ffmpeg
+sudo apt upgrade -y
 ```
 
-#### macOS
+2. Install Python and required system packages:
 ```bash
-# Using Homebrew
-brew install python
-brew install ffmpeg
+sudo apt install -y python3.11 python3.11-venv python3.11-dev python3-pip \
+    build-essential libffi-dev libssl-dev libjpeg-dev zlib1g-dev \
+    libmagic-dev
+```
+
+3. Install FFmpeg:
+```bash
+sudo apt install -y ffmpeg
+```
+
+4. Verify FFmpeg installation:
+```bash
+ffmpeg -version
 ```
 
 ### 2. Project Setup
@@ -94,48 +86,67 @@ cd theskullcon
 ```
 
 2. Create and activate a virtual environment:
-
-Windows:
 ```bash
-python -m venv venv
-venv\Scripts\activate
-```
-
-Linux/macOS:
-```bash
-python3 -m venv venv
+python3.11 -m venv venv
 source venv/bin/activate
 ```
 
-3. Install Python dependencies:
+3. Upgrade pip and install wheel:
+```bash
+python -m pip install --upgrade pip
+pip install wheel
+```
+
+4. Install Python dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Create uploads directory:
+5. Create uploads directory:
 ```bash
-# Windows
-mkdir app\static\uploads
-
-# Linux/macOS
 mkdir -p app/static/uploads
 ```
 
 ### 3. Running the Application
 
-1. Verify FFmpeg installation:
-```bash
-ffmpeg -version
-```
-
-2. Start the FastAPI server:
+1. Start the FastAPI server:
 ```bash
 uvicorn app.main:app --reload --port 8012
 ```
 
-3. Access the application:
+2. Access the application:
 ```
 http://localhost:8012
+```
+
+### 4. Running as a Service (Optional)
+
+1. Create a systemd service file:
+```bash
+sudo nano /etc/systemd/system/theskullcon.service
+```
+
+2. Add the following content:
+```ini
+[Unit]
+Description=TheSkullCon File Converter
+After=network.target
+
+[Service]
+User=your_username
+WorkingDirectory=/path/to/theskullcon
+Environment="PATH=/path/to/theskullcon/venv/bin"
+ExecStart=/path/to/theskullcon/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8012
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+3. Enable and start the service:
+```bash
+sudo systemctl enable theskullcon
+sudo systemctl start theskullcon
 ```
 
 ## Project Structure
@@ -182,8 +193,11 @@ theskullcon/
    - Try running `ffmpeg -version` in terminal
 
 2. **Permission Issues**
-   - Ensure the uploads directory has proper write permissions
-   - Run the application with appropriate user privileges
+   - Ensure the uploads directory has proper write permissions:
+     ```bash
+     sudo chown -R your_username:your_username app/static/uploads
+     sudo chmod -R 755 app/static/uploads
+     ```
 
 3. **Port Already in Use**
    - Change the port in the uvicorn command:
@@ -192,11 +206,8 @@ theskullcon/
      ```
 
 4. **Dependencies Installation Fails**
-   - Upgrade pip:
-     ```bash
-     python -m pip install --upgrade pip
-     ```
-   - Install dependencies one by one if needed
+   - Ensure all required system packages are installed
+   - Try installing dependencies one by one
    - Check Python version compatibility
 
 ## Contributing
