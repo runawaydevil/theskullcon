@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TheSkullCon - Conversor de Arquivos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .dropzone {
+            border: 2px dashed #0087F7;
+            border-radius: 5px;
+            background: #F5F5F5;
+            min-height: 150px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .dropzone .dz-message {
+            margin: 2em 0;
+            text-align: center;
+        }
+        .preview-container {
+            margin-top: 20px;
+        }
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            margin-bottom: 10px;
+        }
+        .progress {
+            height: 25px;
+            margin-top: 20px;
+            display: none;
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        .status-message {
+            margin-top: 10px;
+            font-weight: bold;
+            display: none;
+        }
+        .download-btn {
+            display: none;
+            margin-top: 20px;
+        }
+        .format-group {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-dark text-white">
+                        <h3 class="mb-0">TheSkullCon - Conversor de Arquivos</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="alert-container">
+                            {% if message %}
+                            <div class="alert alert-success">
+                                {{ message }}
+                                {% if output_file %}
+                                <br>
+                                <a href="/static/uploads/{{ output_file }}" class="btn btn-sm btn-success mt-2" download>
+                                    <i class="fas fa-download"></i> Baixar Arquivo
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+                            {% if error %}
+                            <div class="alert alert-danger">
+                                {{ error }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <form id="conversion-form" action="/convert" method="post" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="file" class="form-label">Arquivo para conversão:</label>
+                                <input type="file" class="form-control" id="file" name="file" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="output_format" class="form-label">Formato de Saída</label>
+                                <select name="output_format" id="output_format" class="form-select" required>
+                                    <option value="">Selecione o formato...</option>
+                                    <optgroup label="Imagens" class="format-group" id="image-formats">
+                                        <option value="jpg">JPG</option>
+                                        <option value="png">PNG</option>
+                                        <option value="bmp">BMP</option>
+                                        <option value="tiff">TIFF</option>
+                                        <option value="webp">WebP</option>
+                                    </optgroup>
+                                    <optgroup label="Vídeos" class="format-group" id="video-formats">
+                                        <option value="mp4">MP4</option>
+                                        <option value="avi">AVI</option>
+                                        <option value="mov">MOV</option>
+                                        <option value="mkv">MKV</option>
+                                        <option value="gif">GIF</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     role="progressbar" 
+                                     style="width: 0%" 
+                                     aria-valuenow="0" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+
+                            <div class="status-message" id="status-message"></div>
+
+                            <button type="submit" class="btn btn-primary" id="convert-btn">
+                                <i class="fas fa-exchange-alt"></i> Converter
+                            </button>
+
+                            <a href="#" class="btn btn-success download-btn" id="download-btn" download>
+                                <i class="fas fa-download"></i> Baixar Arquivo Convertido
+                            </a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Formatos permitidos
+        const imageFormats = ['jpg', 'jpeg', 'png', 'bmp', 'tiff', 'webp'];
+        const videoFormats = ['mp4', 'avi', 'mov', 'mkv', 'gif'];
+
+        // Elementos do DOM
+        const fileInput = document.getElementById('file');
+        const outputFormat = document.getElementById('output_format');
+        const imageFormatsGroup = document.getElementById('image-formats');
+        const videoFormatsGroup = document.getElementById('video-formats');
+
+        // Função para atualizar os formatos disponíveis
+        function updateAvailableFormats(file) {
+            // Esconder todos os grupos de formatos
+            imageFormatsGroup.style.display = 'none';
+            videoFormatsGroup.style.display = 'none';
+
+            // Limpar o select
+            outputFormat.innerHTML = '<option value="">Selecione o formato...</option>';
+
+            // Obter a extensão do arquivo
+            const fileName = file.name.toLowerCase();
+            const fileExt = fileName.split('.').pop();
+
+            // Determinar o tipo de arquivo
+            if (imageFormats.includes(fileExt)) {
+                imageFormatsGroup.style.display = 'block';
+                outputFormat.appendChild(imageFormatsGroup);
+            } else if (videoFormats.includes(fileExt)) {
+                videoFormatsGroup.style.display = 'block';
+                outputFormat.appendChild(videoFormatsGroup);
+            }
+        }
+
+        // Event listener para mudança no arquivo
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                updateAvailableFormats(file);
+                
+                // Preview de imagem
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.createElement('div');
+                    preview.className = 'preview-container';
+                    if (file.type.startsWith('image/')) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'preview-image';
+                        preview.appendChild(img);
+                    }
+                    document.getElementById('conversion-form').insertBefore(preview, document.querySelector('.progress'));
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('conversion-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const form = this;
+            const progressBar = document.querySelector('.progress-bar');
+            const progress = document.querySelector('.progress');
+            const statusMessage = document.getElementById('status-message');
+            const convertBtn = document.getElementById('convert-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const alertContainer = document.getElementById('alert-container');
+
+            // Reset UI
+            alertContainer.innerHTML = '';
+            progress.style.display = 'block';
+            statusMessage.style.display = 'block';
+            convertBtn.disabled = true;
+            downloadBtn.style.display = 'none';
+
+            // Simular progresso
+            let progressValue = 0;
+            const progressInterval = setInterval(() => {
+                progressValue += 5;
+                progressBar.style.width = progressValue + '%';
+                progressBar.setAttribute('aria-valuenow', progressValue);
+                statusMessage.textContent = `Convertendo... ${progressValue}%`;
+
+                if (progressValue >= 100) {
+                    clearInterval(progressInterval);
+                }
+            }, 500);
+
+            // Enviar formulário
+            const formData = new FormData(form);
+            fetch('/convert', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(html => {
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                progressBar.setAttribute('aria-valuenow', 100);
+                
+                // Atualizar a página com a resposta
+                document.body.innerHTML = html;
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                alertContainer.innerHTML = `
+                    <div class="alert alert-danger">
+                        Erro durante a conversão: ${error.message}
+                    </div>
+                `;
+                convertBtn.disabled = false;
+            });
+        });
+    </script>
+</body>
+</html> 

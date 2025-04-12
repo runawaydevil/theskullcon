@@ -1,45 +1,99 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Request, Form, File, UploadFile
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
+from app.services.converter import VideoConverter
+from app.config import Config
+import os
+import shutil
 from pathlib import Path
 
-from . import routes
+app = FastAPI()
 
-app = FastAPI(
-    title="TheSkull.org - Conversor de Arquivos",
-    description="""
-    API para conversão de imagens e vídeos.
-    - Imagens: Suporte para WebP, AVIF, JPEG XL, JPEG, PNG
-    - Vídeos: Suporte para MP4, WebM, AVI, MKV (apenas super admin)
-    """,
-    version="1.0.0"
-)
+# Configuração dos templates
+templates = Jinja2Templates(directory="app/templates")
 
-# Configuração CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Configuração dos arquivos estáticos
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-# Configuração de diretórios
-UPLOAD_DIR = Path("uploads")
-CONVERTED_DIR = Path("converted")
-UPLOAD_DIR.mkdir(exist_ok=True)
-CONVERTED_DIR.mkdir(exist_ok=True)
+# Criar diretório de uploads se não existir
+os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
 
-# Inclui as rotas
-app.include_router(routes.router, prefix="/api")
+# Inicializar o conversor
+converter = VideoConverter()
 
-@app.get("/")
-async def root():
-    return {
-        "message": "Bem-vindo ao TheSkull.org - API de Conversão de Arquivos",
-        "docs": "/docs",
-        "admin_email": "pablo@pablomurad.com"
-    }
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.post("/convert")
+async def convert_file(
+    request: Request,
+    file: UploadFile = File(...),
+    output_format: str = Form(...)
+):
+    try:
+        # Verificar se o arquivo foi enviado
+        if not file:
+            return templates.TemplateResponse(
+                "index.html",
+                {
+                    "request": request,
+                    "error": "Nenhum arquivo foi enviado"
+                }
+            )
+
+        # Verificar se o formato de saída é válido
+        if not output_format:
+            return templates.TemplateResponse(
+                "index.html",
+                {
+                    "request": request,
+                    "error": "Formato de saída não especificado"
+                }
+            )
+
+        # Salvar o arquivo temporariamente
+        file_path = os.path.join(Config.UPLOAD_FOLDER, file.filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Gerar nome do arquivo de saída
+        output_filename = f"{Path(file.filename).stem}.{output_format}"
+        output_path = os.path.join(Config.UPLOAD_FOLDER, output_filename)
+        
+        # Converter o arquivo
+        success, message = converter.convert(file_path, output_path, output_format)
+        
+        # Limpar o arquivo temporário
+        os.remove(file_path)
+        
+        if success:
+            return templates.TemplateResponse(
+                "index.html",
+                {
+                    "request": request,
+                    "message": "Conversão concluída com sucesso!",
+                    "output_file": output_filename
+                }
+            )
+        else:
+            return templates.TemplateResponse(
+                "index.html",
+                {
+                    "request": request,
+                    "error": message
+                }
+            )
+    except Exception as e:
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "error": f"Erro durante a conversão: {str(e)}"
+            }
+        )
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8012) 
+    uvicorn.run(app, host=Config.HOST, port=Config.PORT) 

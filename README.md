@@ -1,146 +1,203 @@
-# TheSkull.org - Conversor de Arquivos
+# TheSkullCon - File Converter
 
-API para conversão de imagens e vídeos com interface web moderna e responsiva.
+A modern and intuitive web application for converting images and videos.
 
-## Funcionalidades
+## Features
 
-- **Conversão de Imagens**:
-  - Suporte para WebP, AVIF, JPEG XL, JPEG, PNG
-  - Controle de qualidade
-  - Redimensionamento automático
+- **Image Conversion**:
+  - Supported formats: JPG, JPEG, PNG, BMP, TIFF, WebP
+  - Real-time preview
+  - Intuitive interface
 
-- **Conversão de Vídeos** (apenas super admin):
-  - Suporte para MP4, WebM, AVI, MKV
-  - Compressão otimizada
-  - Controle de resolução
+- **Video Conversion**:
+  - Supported formats: MP4, AVI, MOV, MKV, GIF
+  - Progress bar
+  - Automatic download after conversion
 
-- **Interface Web**:
-  - Design moderno e responsivo
-  - Upload via drag-and-drop
-  - Preview de arquivos
-  - Histórico de conversões
+- **Web Interface**:
+  - Modern design with Bootstrap 5
+  - Simple upload process
+  - Image preview
+  - Visual progress feedback
 
-## Tecnologias Utilizadas
+## Technologies Used
 
 - **Backend**:
   - FastAPI
-  - SQLAlchemy
-  - Alembic
   - FFmpeg
   - Pillow
+  - Python-Magic
 
 - **Frontend**:
   - Bootstrap 5
   - Font Awesome
-  - Dropzone.js
   - Jinja2 Templates
+  - JavaScript
 
-## Requisitos
+## Requirements
 
-- Python 3.8+
-- PostgreSQL
+- Python 3.8 or higher
 - FFmpeg
-- Dependências Python (ver `requirements.txt`)
+- Python dependencies (listed in `requirements.txt`)
 
-## Instalação
+## Detailed Installation Guide
 
-1. Clone o repositório:
+### 1. System Requirements
+
+#### Windows
+1. Install Python 3.8+:
+   - Download from [Python's official website](https://www.python.org/downloads/)
+   - During installation, check "Add Python to PATH"
+
+2. Install FFmpeg:
+   - Download from [FFmpeg official website](https://ffmpeg.org/download.html)
+   - Extract the ZIP file
+   - Add the FFmpeg `bin` folder to your system's PATH:
+     - Search for "Environment Variables" in Windows
+     - Under "System Variables", find and select "Path"
+     - Click "Edit" → "New"
+     - Add the path to FFmpeg's bin folder
+     - Click "OK" to save
+
+#### Linux (Ubuntu/Debian)
 ```bash
-git clone https://github.com/seu-usuario/theskullcon.git
+# Install Python
+sudo apt update
+sudo apt install python3 python3-pip python3-venv
+
+# Install FFmpeg
+sudo apt install ffmpeg
+```
+
+#### macOS
+```bash
+# Using Homebrew
+brew install python
+brew install ffmpeg
+```
+
+### 2. Project Setup
+
+1. Clone the repository:
+```bash
+git clone https://github.com/your-username/theskullcon.git
 cd theskullcon
 ```
 
-2. Crie um ambiente virtual:
+2. Create and activate a virtual environment:
+
+Windows:
 ```bash
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
+venv\Scripts\activate
 ```
 
-3. Instale as dependências:
+Linux/macOS:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+3. Install Python dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Configure as variáveis de ambiente:
+4. Create uploads directory:
 ```bash
-cp .env.example .env
-# Edite o arquivo .env com suas configurações
+# Windows
+mkdir app\static\uploads
+
+# Linux/macOS
+mkdir -p app/static/uploads
 ```
 
-5. Inicialize o banco de dados:
+### 3. Running the Application
+
+1. Verify FFmpeg installation:
 ```bash
-alembic upgrade head
-python -m app.init_db
+ffmpeg -version
 ```
 
-## Executando o Projeto
-
-1. Inicie o servidor:
+2. Start the FastAPI server:
 ```bash
-python -m app.main
+uvicorn app.main:app --reload --port 8012
 ```
 
-2. Acesse a aplicação:
+3. Access the application:
 ```
 http://localhost:8012
 ```
 
-## Estrutura do Projeto
+## Project Structure
 
 ```
 theskullcon/
 ├── app/
 │   ├── __init__.py
-│   ├── main.py
-│   ├── auth.py
-│   ├── database.py
-│   ├── models.py
-│   ├── routes.py
-│   ├── image_converter.py
-│   ├── video_converter.py
-│   ├── init_db.py
+│   ├── main.py            # FastAPI application
+│   ├── config.py          # Configuration settings
+│   ├── services/
+│   │   └── converter.py   # Conversion logic
+│   ├── static/
+│   │   └── uploads/       # Temporary file storage
 │   └── templates/
-│       ├── base.html
-│       ├── auth/
-│       │   ├── login.html
-│       │   └── register.html
-│       └── converter/
-│           └── index.html
-├── alembic/
-│   └── versions/
-├── uploads/
-├── converted/
-├── requirements.txt
-├── .env.example
-└── README.md
+│       └── index.html     # Web interface
+├── requirements.txt       # Python dependencies
+└── README.md             # Documentation
 ```
 
-## Configuração
+## Supported Formats
 
-### Variáveis de Ambiente
+### Images
+- JPG/JPEG
+- PNG
+- BMP
+- TIFF
+- WebP
 
-Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+### Videos
+- MP4
+- AVI
+- MOV
+- MKV
+- GIF
 
-```env
-DATABASE_URL=postgresql://usuario:senha@localhost/theskullcon
-SECRET_KEY=sua-chave-secreta
-```
+## Troubleshooting
 
-### Permissões de Usuário
+### Common Issues
 
-- **Usuário Normal**: Pode converter imagens
-- **Admin**: Pode converter imagens e vídeos
-- **Super Admin**: Acesso total ao sistema
+1. **FFmpeg not found**
+   - Ensure FFmpeg is properly installed
+   - Verify it's in your system's PATH
+   - Try running `ffmpeg -version` in terminal
 
-## Contribuição
+2. **Permission Issues**
+   - Ensure the uploads directory has proper write permissions
+   - Run the application with appropriate user privileges
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
-3. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
-4. Push para a branch (`git push origin feature/nova-feature`)
-5. Abra um Pull Request
+3. **Port Already in Use**
+   - Change the port in the uvicorn command:
+     ```bash
+     uvicorn app.main:app --reload --port 8013
+     ```
 
-## Licença
+4. **Dependencies Installation Fails**
+   - Upgrade pip:
+     ```bash
+     python -m pip install --upgrade pip
+     ```
+   - Install dependencies one by one if needed
+   - Check Python version compatibility
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes. 
+## Contributing
+
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 

@@ -1,17 +1,11 @@
-Pillow==10.2.0  # Para manipulação básica de imagens
-opencv-python==4.9.0.80  # Para processamento avançado de imagens e vídeos
-numpy==1.26.4  # Para operações numéricas
-webp==0.1.6  # Para suporte nativo a WebP
-avif==0.1.0  # Para suporte a AVIF (formato de alta compressão)
-jpegxl==0.1.0  # Para suporte a JPEG XL (formato moderno)
-fastapi==0.110.0  # Para criar a API web
-uvicorn==0.27.1  # Servidor ASGI
-python-multipart==0.0.9  # Para upload de arquivos
-python-jose==3.3.0  # Para autenticação JWT
-passlib==1.7.4  # Para hash de senhas
-python-dotenv==1.0.1  # Para variáveis de ambiente
-sqlalchemy==2.0.27  # ORM para banco de dados
-psycopg2-binary==2.9.9  # Driver PostgreSQL
-alembic==1.13.1  # Para migrações do banco de dados
-moviepy==1.0.3  # Para conversão de vídeos
-ffmpeg-python==0.2.0  # Para manipulação avançada de vídeos 
+# Manipulação de imagens
+Pillow==10.4.0
+
+# Web Framework
+fastapi==0.109.2
+uvicorn==0.27.1
+python-multipart==0.0.9
+jinja2==3.1.3
+
+# Utilitários
+python-magic==0.4.27 
