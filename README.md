@@ -1,6 +1,15 @@
 # TheSkullCon - File Converter
 
+[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109.2-green.svg)](https://fastapi.tiangolo.com/)
+[![FFmpeg](https://img.shields.io/badge/FFmpeg-Required-orange.svg)](https://ffmpeg.org/)
+
 A modern and intuitive web application for converting images and videos.
+
+> Developed by [RunawayDevil](https://github.com/RunawayDevil) in 2025
+> 
+> Licensed under the MIT License
 
 ## Features
 
