@@ -1,5 +1,9 @@
 # TheSkullCon - File Converter
 
+<div align="center">
+  <img src="https://i.ibb.co/3YR3V6zx/logo-2.png" alt="TheSkullCon Logo" width="200">
+</div>
+
 [![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-green.svg)](https://fastapi.tiangolo.com/)
