@@ -1,55 +1,70 @@
 # TheSkullCon - File Converter
 
 <div align="center">
-  <img src="app/static/images/logo.png" alt="TheSkullCon Logo" width="200">
+    <img src="app/static/images/logo.png" alt="TheSkullCon Logo" width="200">
 </div>
 
-[![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-green.svg)](https://fastapi.tiangolo.com/)
-[![FFmpeg Required](https://img.shields.io/badge/FFmpeg-Required-orange.svg)](https://ffmpeg.org/)
+<p align="center">
+    <img src="https://img.shields.io/badge/Python-3.11+-blue.svg" alt="Python Version">
+    <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
+    <img src="https://img.shields.io/badge/FastAPI-0.104.0-blue.svg" alt="FastAPI Version">
+    <img src="https://img.shields.io/badge/FFmpeg-Required-orange.svg" alt="FFmpeg Required">
+</p>
 
-A modern web application for converting images, videos, and audio files with an intuitive interface.
+> Developed by [RunawayDevil](https://github.com/RunawayDevil) © 2025
 
-> Developed by [RunawayDevil](https://github.com/RunawayDevil) in 2025 under the MIT License.
+## 📝 Description
 
-## Features
+TheSkullCon is a modern web application for converting images and videos with a beautiful and intuitive interface. It supports a wide range of formats and provides real-time preview of files.
+
+## ✨ Features
 
 - **Image Conversion**
   - Supported formats: JPG, JPEG, PNG, BMP, TIFF, WebP
-  - Real-time preview
-  - Automatic download after conversion
+  - High-quality conversion
+  - Preserves image quality
 
 - **Video Conversion**
   - Supported formats: MP4, AVI, MOV, MKV, GIF
-  - Optimized compression
-  - Progress bar during conversion
-  - Automatic download after conversion
+  - Optimized for web playback
+  - Maintains video quality
 
 - **Audio Conversion**
   - Supported formats: MP3, WAV, OGG, FLAC, AAC, M4A
-  - High-quality conversion
-  - Progress bar during conversion
-  - Automatic download after conversion
+  - High-quality audio conversion
+  - Preserves audio quality
 
-- **General Features**
-  - Maximum file size: 300MB
-  - Modern and responsive interface
+- **User Experience**
+  - Drag and drop interface
   - Real-time file preview
-  - Progress tracking
-  - Automatic format detection
-  - Secure file handling
+  - Automatic download after conversion
+  - Progress bar during conversion
+  - Responsive design
 
-## Requirements
+## 🛠️ Technologies Used
 
-- Debian 12 (Bookworm)
+### Backend
+- FastAPI
+- FFmpeg
+- Pillow
+- Python-Magic
+- Filetype
+
+### Frontend
+- Bootstrap 5
+- Font Awesome
+- Jinja2 Templates
+- JavaScript
+
+## 🚀 Installation
+
+### Requirements
 - Python 3.11 or higher
 - FFmpeg
-- Virtual environment (recommended)
+- Debian 12 (Bookworm) or compatible system
 
-## Installation
+### Step 1: Install System Dependencies
 
-### System Requirements
 ```bash
 # Update system
 sudo apt update && sudo apt upgrade -y
@@ -57,11 +72,12 @@ sudo apt update && sudo apt upgrade -y
 # Install Python and required packages
 sudo apt install -y python3 python3-pip python3-venv ffmpeg
 
-# Install filetype dependencies
-sudo apt install -y libmagic-dev
+# Install FFmpeg
+sudo apt install -y ffmpeg
 ```
 
-### Project Setup
+### Step 2: Clone and Setup Project
+
 ```bash
 # Clone repository
 git clone https://github.com/RunawayDevil/TheSkullCon.git
@@ -73,13 +89,10 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
-
-# Create upload directory
-mkdir -p app/static/uploads
-mkdir -p app/static/images
 ```
 
-### Running the Application
+### Step 3: Run the Application
+
 ```bash
 # Start the server
 uvicorn app.main:app --reload --port 8012
@@ -87,24 +100,41 @@ uvicorn app.main:app --reload --port 8012
 
 The application will be available at `http://localhost:8012`
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 TheSkullCon/
 ├── app/
 │   ├── static/
-│   │   ├── uploads/     # Temporary storage for converted files
-│   │   └── images/      # Static images (logo, etc)
-│   │   └── templates/   # Web interface templates
+│   │   ├── images/
+│   │   └── uploads/
+│   ├── templates/
+│   │   └── index.html
 │   ├── services/
-│   │   └── converter.py # File conversion logic
-│   ├── config.py        # Configuration settings
-│   └── main.py          # FastAPI application
-├── requirements.txt     # Python dependencies
-└── README.md           # Project documentation
+│   │   └── converter.py
+│   ├── __init__.py
+│   ├── config.py
+│   └── main.py
+├── requirements.txt
+└── README.md
 ```
 
-## Supported Formats
+## 🔧 Configuration
+
+The application can be configured by modifying the `app/config.py` file:
+
+```python
+# Server settings
+HOST = "0.0.0.0"
+PORT = 8012
+DEBUG = True
+
+# Upload settings
+MAX_CONTENT_LENGTH = 300 * 1024 * 1024  # 300MB
+CLEANUP_INTERVAL = 3600  # 1 hour in seconds
+```
+
+## 🎯 Supported Formats
 
 ### Images
 - JPG/JPEG
@@ -128,7 +158,7 @@ TheSkullCon/
 - AAC
 - M4A
 
-## Troubleshooting
+## 🔍 Troubleshooting
 
 ### Common Issues
 
@@ -137,24 +167,30 @@ TheSkullCon/
    sudo apt install ffmpeg
    ```
 
-2. **Python dependencies not installing**
+2. **Permission denied**
    ```bash
-   pip install --upgrade pip
-   pip install -r requirements.txt
+   sudo chmod -R 755 app/static/uploads
    ```
 
-3. **File size limit exceeded**
-   - Maximum file size is 300MB
-   - Compress your file before uploading if necessary
+3. **Port already in use**
+   ```bash
+   # Find process using port 8012
+   sudo lsof -i :8012
+   
+   # Kill the process
+   sudo kill -9 <PID>
+   ```
 
 ### Running as a Service
 
 Create a systemd service file:
+
 ```bash
 sudo nano /etc/systemd/system/theskullcon.service
 ```
 
 Add the following content:
+
 ```ini
 [Unit]
 Description=TheSkullCon File Converter
@@ -171,12 +207,13 @@ WantedBy=multi-user.target
 ```
 
 Enable and start the service:
+
 ```bash
 sudo systemctl enable theskullcon
 sudo systemctl start theskullcon
 ```
 
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -184,6 +221,12 @@ sudo systemctl start theskullcon
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## License
+## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👨‍💻 Author
+
+- **Pablo Murad (RunawayDevil)**
+  - GitHub: [@RunawayDevil](https://github.com/RunawayDevil)
+  - Email: your.email@example.com 

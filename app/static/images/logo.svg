@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- Fundo circular -->
+    <circle cx="100" cy="100" r="90" fill="#4a6cf7" opacity="0.1"/>
+    
+    <!-- Círculo externo -->
+    <circle cx="100" cy="100" r="80" fill="none" stroke="#4a6cf7" stroke-width="4"/>
+    
+    <!-- Seta de conversão -->
+    <path d="M60 100 L140 100 M120 80 L140 100 L120 120" 
+          stroke="#4a6cf7" 
+          stroke-width="8" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+    
+    <!-- Ícones de arquivo -->
+    <g transform="translate(40, 60)">
+        <!-- Arquivo 1 -->
+        <rect x="0" y="0" width="40" height="50" rx="5" fill="#ff6b6b"/>
+        <path d="M10 15 L30 15 M10 25 L30 25 M10 35 L20 35" stroke="white" stroke-width="3"/>
+        
+        <!-- Arquivo 2 -->
+        <rect x="120" y="0" width="40" height="50" rx="5" fill="#4ecdc4"/>
+        <path d="M130 15 L150 15 M130 25 L150 25 M130 35 L140 35" stroke="white" stroke-width="3"/>
+    </g>
+    
+    <!-- Texto TheSkullCon -->
+    <text x="100" y="180" 
+          font-family="Arial" 
+          font-size="20" 
+          font-weight="bold" 
+          text-anchor="middle" 
+          fill="#4a6cf7">
+        TheSkullCon
+    </text>
+</svg> 

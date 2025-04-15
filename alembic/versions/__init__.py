@@ -1,1 +1,0 @@
-# Este arquivo é necessário para tornar o diretório versions um pacote Python 
